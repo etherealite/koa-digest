@@ -2,11 +2,12 @@
 
 module.exports = exports = middleWare;
 
-let createHash = require('crypto').createHash;
+const crypto = require('crypto');
+const url = require('url');
 
 
 function md5(msg) {
-    return createHash('md5').update(msg).digest('hex');
+    return crypto.createHash('md5').update(msg).digest('hex');
 }
 
 
@@ -26,15 +27,18 @@ function parse(authbody){
 
 function middleWare(validation) {
     
+    // seriously need to refactor these closures into a compositional approach
+    
+    
     const challenge = (function(hashfunc, validateby) {
        let realm = validateby.realm;
-       return function(response) {
+       return async function() {
            let opaque = hashfunc(realm);
+           const random = await (crypto.randomBytes(16).toString('hex'));
            return `Digest realm="${realm}",qop="auth",nonce=`+
-           `"${Math.random()}",opaque="${opaque}"`;
+           `"${random}",opaque="${opaque}"`;
            
        };
- 
     })(md5, validation);
 
 
@@ -42,13 +46,13 @@ function middleWare(validation) {
         return function (auth, request) {
             let valid = validateby, ha1, ha2, response;
             
+            request.pathname = url.parse(request.url).pathname;
             const compute = ( arr => {
                 return hashfunc(arr.join(':'));
             });
-    
-            ha1 = compute([auth.username, auth.realm, valid.password]);
-            ha2 = compute([request.method, auth.uri]);
-            
+
+            ha1 = compute([valid.username, valid.realm, valid.password]);
+            ha2 = compute([request.method, request.pathname]);
             response = compute([
                 ha1,
                 auth.nonce, auth.nc, auth.cnonce, auth.qop, 
@@ -66,7 +70,7 @@ function middleWare(validation) {
         let request = ctx.request;
         let authorization = parse(request.header.authorization);
         let authorized, server, client;
-    
+
         if (authorization) {
             server = digest(authorization, request).response;
             client = authorization.response;
@@ -78,7 +82,7 @@ function middleWare(validation) {
         }
         else {
     
-            response.set('WWW-Authenticate', challenge(response));
+            response.set('WWW-Authenticate', await challenge());
             ctx.status = 401;
         }
     
