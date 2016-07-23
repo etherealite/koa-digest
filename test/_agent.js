@@ -1,4 +1,6 @@
 
+'use strict';
+
 import url from 'url';
 
 import crypto from 'crypto';
@@ -70,7 +72,13 @@ function agentDigest(authorization) {
     };
     
     return function(request) {
-        clientAuth.uri = url.parse(request.url).pathname;
+        const parsed = url.parse(request.url);
+        const pathname = parsed.pathname;
+        const search = parsed.search || '';
+
+        // const {pathname='/', search=''} = {parsed};
+        const uri = pathname + search;
+        clientAuth.uri = uri;
         clientAuth.method = request.method.toUpperCase();
         clientAuth.response = clientDigest(clientAuth);
         const authBody = clientAuthBody(clientAuth);

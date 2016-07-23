@@ -42,10 +42,11 @@ test('valid credentials authenticate DELETE requests', async t => {
 test('valid credentials authenticate requests with query params', async t => {
     // A bit of a cheat since query params are removed
     const response = await buildResponse(credentialsDefault, {
-        path: '/JunkWithParams?yes=with&more=params'
+        path: '/IHaveSomeParams?yes=with&more=params'
     });
     t.is(response.status, 200);
 });
+
 
 // With invalid credentials
 

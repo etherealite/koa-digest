@@ -3,7 +3,6 @@
 module.exports = exports = middleWare;
 
 const crypto = require('crypto');
-const url = require('url');
 
 
 function md5(msg) {
@@ -45,14 +44,13 @@ function middleWare(validation) {
     const digest = (function (hashfunc, validateby) {
         return function (auth, request) {
             let valid = validateby, ha1, ha2, response;
-            
-            request.pathname = url.parse(request.url).pathname;
+
             const compute = ( arr => {
                 return hashfunc(arr.join(':'));
             });
 
             ha1 = compute([valid.username, valid.realm, valid.password]);
-            ha2 = compute([request.method, request.pathname]);
+            ha2 = compute([request.method, request.url]);
             response = compute([
                 ha1,
                 auth.nonce, auth.nc, auth.cnonce, auth.qop, 
