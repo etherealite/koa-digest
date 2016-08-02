@@ -41,6 +41,7 @@
     ]
   },
   "dependencies": {
+    "data.maybe": "^1.2.2",
     "ramda": "^0.21.0"
   }
 }

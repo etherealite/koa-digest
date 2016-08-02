@@ -11,24 +11,24 @@ function md5(msg) {
 }
 
 
-// Cruft for now, going to need this when the feature of following 401 a 
+// Cruft for now, going to need this when the feature of following 401 a
 // issued challenge is implemented
 const parse = (authbody) => {
-    
-    let a = authbody; 
+
+    let a = authbody;
     let authObj = {};
     let pat = /([^=,\s]*)\s*=\s*["'\s]?([^,"]+)["'\s]?/gi;
-    
+
     if(!authbody) return;
-    
+
     a.replace(pat, (match, key, value) => { authObj[key] = value; });
     return authObj;
-    
+
 };
 
 
 const clientDigest = (auth) => {
-    
+
     const compute = ( arr => {
         return md5(arr.join(':'));
     });
@@ -38,7 +38,7 @@ const clientDigest = (auth) => {
 
     const response = compute([
         ha1,
-        auth.nonce, auth.nc, auth.cnonce, auth.qop, 
+        auth.nonce, auth.nc, auth.cnonce, auth.qop,
         ha2
     ]);
 
@@ -47,7 +47,7 @@ const clientDigest = (auth) => {
 
 
 const clientAuthBody = (clientAuth) => {
-  const a = clientAuth; 
+  const a = clientAuth;
   return `Digest username="${a.username}", realm="${a.realm}",`+
   `nonce="${a.nonce}", uri="${a.uri}", qop=${a.qop}, nc=${a.nc}, `+
   `cnonce="${a.cnonce}", response="${a.response}"`;
@@ -68,9 +68,9 @@ function agentDigest(authorization) {
         method: '',
         qop: 'auth',
         response: ''
-            
+
     };
-    
+
     return function(request) {
         const parsed = url.parse(request.url);
         const pathname = parsed.pathname;
