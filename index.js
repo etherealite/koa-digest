@@ -52,6 +52,9 @@ const tap = x => {console.log(x); return x};
 
 const pairFromMW = (clientHead, criteria) => IO(() => [clientHead, criteria]);
 
+const doClient = f => pair => [f(pair[0]), pair[1]];
+const doServer = f => pair => [pair[0], f(pair[1])];
+
 const authParse = (authbody) => {
 
     let a = authbody;
@@ -62,8 +65,6 @@ const authParse = (authbody) => {
     return authObj;
 
 };
-
-const parsePair = parser => pair => [parser(pair[0]), pair[1]];
 
 
 const solveChallenge = hashfunc => challenge => {
@@ -103,18 +104,18 @@ const cheatOffClient = pair => {
 
 const solverMD5 = solveChallenge(MD5);
 
-const solvePair = solver => pair => [pair[0].response, solver(pair[1])];
-
 const signaturesEqual = signatures => signatures[0] === signatures[1];
 
 
 const verifyPair = compose(signaturesEqual,
-    solvePair(solverMD5), cheatOffClient, parsePair(authParse));
+    doServer(solverMD5), cheatOffClient, doClient(authParse));
 
 
 function verify(clientHead, criteria) {
     return pairFromMW(clientHead, criteria).map(verifyPair).unsafePerform();
 }
+
+
 
 function middleware(credentials) {
     return async (ctx, next)  => {
